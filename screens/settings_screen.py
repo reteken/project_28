@@ -1,6 +1,8 @@
 from kivy.uix.screenmanager import Screen
 from kivy.lang import Builder
+from kivy.metrics import dp
 from models import RoundedButton
+from theme_manager import theme_manager
 
 Builder.load_string(
     """
@@ -9,24 +11,36 @@ Builder.load_string(
         orientation: 'vertical'
         padding: dp(20)
         spacing: dp(20)
+        canvas.before:
+            Color:
+                rgba: app.theme.get("background_color")
+            Rectangle:
+                pos: self.pos
+                size: self.size
 
         RoundedButton:
-            text: "Опция 1"
-            size_hint: (1, 0.2)
-            on_release: print("Опция 1 выбрана")
-
-        RoundedButton:
-            text: "Опция 2"
-            size_hint: (1, 0.2)
-            on_release: print("Опция 2 выбрана")
+            text: "Переключить тему"
+            background_color: app.theme.get("button_color")
+            color: app.theme.get("text_color")
+            on_release: root.toggle_theme()
 
         RoundedButton:
             text: "Назад"
-            size_hint: (1, 0.2)
+            background_color: app.theme.get("button_color")
+            color: app.theme.get("text_color")
             on_release: root.manager.current = 'main_menu'
     """
 )
 
 
 class SettingsScreen(Screen):
-    pass
+    def toggle_theme(self):
+        # Переключение темы
+        theme_manager.toggle_theme()
+        # Обновляем все экраны
+        for screen in self.manager.screens:
+            if hasattr(screen, "update_theme"):
+                screen.update_theme()
+
+    def update_theme(self):
+        self.canvas.ask_update()

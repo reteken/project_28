@@ -1,31 +1,51 @@
 from kivy.uix.screenmanager import Screen
-from kivy.uix.boxlayout import BoxLayout
-from kivy.uix.scrollview import ScrollView
-from kivy.uix.anchorlayout import AnchorLayout
+from kivy.lang import Builder
+from kivy.metrics import dp
 from models import MushroomCard
 from database import get_mushrooms
+from theme_manager import theme_manager
+
+Builder.load_string(
+    """
+<HistoryScreen>:
+    BoxLayout:
+        orientation: 'vertical'
+        padding: dp(20)
+        spacing: dp(20)
+        canvas.before:
+            Color:
+                rgba: app.theme.get("background_color")
+            Rectangle:
+                pos: self.pos
+                size: self.size
+
+        ScrollView:
+            BoxLayout:
+                id: history_container
+                orientation: 'vertical'
+                size_hint_y: None
+                height: self.minimum_height
+    """
+)
 
 
 class HistoryScreen(Screen):
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
+    def on_enter(self):
+        self.load_history()
 
-        main_layout = AnchorLayout(anchor_x="center", anchor_y="top")
+    def load_history(self):
+        history_container = self.ids.history_container
+        history_container.clear_widgets()
 
-        scroll_container = BoxLayout(orientation="vertical", size_hint=(0.95, 0.95))
+        for mushroom in get_mushrooms():
+            card = MushroomCard(
+                name=mushroom[1],
+                date=mushroom[2],
+                image_path=mushroom[3],
+                size_hint=(1, None),
+                height=dp(100),
+            )
+            history_container.add_widget(card)
 
-        scroll_view = ScrollView()
-        self.scroll_layout = BoxLayout(
-            orientation="vertical", size_hint_y=None, spacing=10
-        )
-        self.scroll_layout.bind(minimum_height=self.scroll_layout.setter("height"))
-
-        mushrooms = get_mushrooms()
-        for mushroom in mushrooms:
-            card = MushroomCard(mushroom[1], mushroom[2], mushroom[3])
-            self.scroll_layout.add_widget(card)
-
-        scroll_view.add_widget(self.scroll_layout)
-        scroll_container.add_widget(scroll_view)
-        main_layout.add_widget(scroll_container)
-        self.add_widget(main_layout)
+    def update_theme(self):
+        self.canvas.ask_update()

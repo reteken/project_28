@@ -6,9 +6,12 @@ from screens.analysis_screen import AnalysisScreen
 from screens.history_screen import HistoryScreen
 from screens.settings_screen import SettingsScreen
 from database import init_db
+from theme_manager import theme_manager
 
 
 class DigitalViewApp(App):
+    theme = theme_manager
+
     def build(self):
         init_db()
 
